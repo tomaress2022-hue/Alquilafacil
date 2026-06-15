@@ -24,6 +24,7 @@ RUN php artisan storage:link || true
 
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
+RUN echo "=== CONTENIDO DE start.sh ===" && cat /start.sh && echo "=== FIN start.sh ==="
 
 EXPOSE 8080
 
