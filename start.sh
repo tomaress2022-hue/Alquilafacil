@@ -1,23 +1,18 @@
 #!/bin/sh
+echo "######## START.SH VERSION 4 EJECUTANDOSE ########"
 set -e
-
-echo "Limpiando caches de config..."
-php artisan config:clear
-php artisan cache:clear
-php artisan route:clear
-php artisan view:clear
-
-echo "Variables de DB actuales:"
+ 
 echo "DB_CONNECTION=$DB_CONNECTION"
 echo "DB_HOST=$DB_HOST"
-echo "DB_PORT=$DB_PORT"
-echo "DB_DATABASE=$DB_DATABASE"
 echo "PORT=$PORT"
-
+ 
+echo "Limpiando config cache (no requiere DB)..."
+php artisan config:clear
+ 
 echo "Ejecutando migraciones..."
-php artisan migrate --force || echo "ADVERTENCIA: las migraciones fallaron"
-
+php artisan migrate --force || echo "ADVERTENCIA: migraciones fallaron"
+ 
 LISTEN_PORT="${PORT:-8080}"
-
-echo "Iniciando servidor PHP integrado en el puerto $LISTEN_PORT..."
+echo "######## LANZANDO PHP -S EN PUERTO $LISTEN_PORT ########"
 exec php -S 0.0.0.0:${LISTEN_PORT} -t public public/index.php
+ 
