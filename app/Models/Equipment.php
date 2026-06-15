@@ -102,6 +102,15 @@ class Equipment extends Model
         if ($this->image && file_exists(storage_path('app/public/' . $this->image))) {
             return asset('storage/' . $this->image);
         }
-        return 'https://via.placeholder.com/400x300?text=Sin+Imagen';
+
+        // Placeholder en SVG embebido (no depende de servicios externos)
+        $label = rawurlencode($this->name ?? 'Sin imagen');
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300">'
+             . '<rect width="100%" height="100%" fill="%23e2e8f0"/>'
+             . '<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" '
+             . 'font-family="sans-serif" font-size="18" fill="%2364748b">' . $label . '</text>'
+             . '</svg>';
+
+        return 'data:image/svg+xml,' . $svg;
     }
 }
