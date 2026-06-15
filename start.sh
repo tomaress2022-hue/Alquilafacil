@@ -16,5 +16,12 @@ echo "DB_DATABASE=$DB_DATABASE"
 echo "Ejecutando migraciones..."
 php artisan migrate --force || echo "ADVERTENCIA: las migraciones fallaron"
 
-echo "Iniciando servidor en el puerto ${PORT:-8080}..."
-exec php artisan serve --host=0.0.0.0 --port=${PORT:-8080}
+# Asegurar que el puerto sea numerico
+if [ -z "$PORT" ]; then
+  LISTEN_PORT=8080
+else
+  LISTEN_PORT=$PORT
+fi
+
+echo "Iniciando servidor en el puerto $LISTEN_PORT..."
+exec php artisan serve --host=0.0.0.0 --port="$LISTEN_PORT"
