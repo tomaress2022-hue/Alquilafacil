@@ -1,5 +1,5 @@
 #!/bin/sh
-echo "######## START.SH VERSION 4 EJECUTANDOSE ########"
+echo "######## START.SH VERSION 5 EJECUTANDOSE ########"
 set -e
  
 echo "DB_CONNECTION=$DB_CONNECTION"
@@ -13,6 +13,6 @@ echo "Ejecutando migraciones..."
 php artisan migrate --force || echo "ADVERTENCIA: migraciones fallaron"
  
 LISTEN_PORT="${PORT:-8080}"
-echo "######## LANZANDO PHP -S EN PUERTO $LISTEN_PORT ########"
-exec php -S 0.0.0.0:${LISTEN_PORT} -t public public/index.php
- 
+echo "######## LANZANDO PHP -S EN PUERTO $LISTEN_PORT (con router para assets) ########"
+cd public
+exec php -S 0.0.0.0:${LISTEN_PORT} ../router.php
