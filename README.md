@@ -1,59 +1,89 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# AlquilaFacil
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+**Estudiante:** Nicolas Hernandez
 
-## About Laravel
+## Descripción
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+AlquilaFacil es un sistema web para la gestión de alquiler de equipos, desarrollado con **Laravel 12**. Permite a los administradores registrar categorías y equipos, y a los clientes solicitar alquileres a través de un catálogo. El flujo de un alquiler pasa por los estados *pendiente → activo → devuelto* (o *cancelado*), y el sistema actualiza automáticamente la disponibilidad de cada equipo según ese estado.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+El proyecto maneja dos roles de usuario:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Admin**: gestiona categorías, equipos, y aprueba o registra la devolución de alquileres.
+- **Cliente**: navega el catálogo, solicita alquileres y consulta el historial de los suyos.
 
-## Learning Laravel
+## Tablas implementadas y sus relaciones
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+| Tabla | Descripción | Campos clave |
+|---|---|---|
+| `users` | Usuarios del sistema (admin o cliente) | `role`, `documento`, `phone` |
+| `categories` | Categorías que agrupan equipos (ej. "Sonido", "Herramientas") | `name`, `description` |
+| `equipment` | Equipos disponibles para alquilar | `category_id`, `code`, `daily_price`, `status`, `image` |
+| `rentals` | Solicitudes/alquileres hechos por un cliente | `client_id`, `status`, `start_date`, `end_date`, `total_price` |
+| `rental_items` | Ítems de cada alquiler (un alquiler puede incluir varios equipos) | `rental_id`, `equipment_id`, `daily_price`, `days`, `subtotal` |
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Relaciones
 
-## Laravel Sponsors
+- **`categories` 1 → N `equipment`**: una categoría tiene muchos equipos.
+- **`users` 1 → N `rentals`**: un usuario (cliente) puede tener muchos alquileres.
+- **`rentals` 1 → N `rental_items`**: un alquiler puede incluir varios equipos.
+- **`equipment` 1 → N `rental_items`**: un equipo puede aparecer en varios ítems de alquiler a lo largo del tiempo.
+- **`rental_items`** actúa como tabla intermedia entre `rentals` y `equipment`, guardando el precio y los días de ese alquiler en particular (para conservar el precio histórico aunque el equipo cambie de precio después).
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```
+users (1) ──< (N) rentals (1) ──< (N) rental_items >── (N) (1) equipment >── (N) (1) categories
+```
 
-### Premium Partners
+## Instrucciones para correr localmente
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### Requisitos previos
 
-## Contributing
+- PHP 8.2 o superior
+- Composer
+- Node.js y npm
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Pasos
 
-## Code of Conduct
+```bash
+# 1. Clonar el repositorio
+git clone <url-del-repositorio>
+cd Alquilafacil
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+# 2. Instalar dependencias de PHP
+composer install
 
-## Security Vulnerabilities
+# 3. Copiar el archivo de entorno y generar la clave de la app
+cp .env.example .env
+php artisan key:generate
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# 4. Configurar la base de datos en .env
+# Por defecto usa SQLite, no requiere instalar nada más:
+touch database/database.sqlite
 
-## License
+# 5. Ejecutar las migraciones (crea las tablas)
+php artisan migrate
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+# (Opcional) Cargar datos de ejemplo
+php artisan db:seed
+
+# 6. Instalar dependencias de frontend y compilar assets
+npm install
+npm run build
+
+# 7. Levantar el servidor local
+php artisan serve
+```
+
+La aplicación quedará disponible en `http://localhost:8000`.
+
+## Capturas de pantalla
+
+> Agrega aquí las capturas de tu proyecto corriendo localmente (dashboard, catálogo, formulario de alquiler, panel de admin, etc.). Puedes tomarlas abriendo `http://localhost:8000` después del paso anterior.
+
+| Pantalla | Captura |
+|---|---|
+| Login | `![Login](docs/screenshots/login.png)` |
+| Catálogo de equipos | `![Catálogo](docs/screenshots/catalogo.png)` |
+| Dashboard admin | `![Dashboard admin](docs/screenshots/dashboard-admin.png)` |
+| Mis alquileres (cliente) | `![Mis alquileres](docs/screenshots/mis-alquileres.png)` |
+
+Guarda las imágenes en una carpeta `docs/screenshots/` dentro del repositorio y reemplaza las rutas de arriba por los nombres reales de tus archivos.
